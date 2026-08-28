@@ -38,6 +38,7 @@ export default function App() {
   const [accent, setAccent] = useState('US');
   const [selectedVoiceId, setSelectedVoiceId] = useState('nicole');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -182,14 +183,33 @@ export default function App() {
     }
   };
 
-  const handleDownload = () => {
-    if (audioUrl) {
+  const handleDownload = async () => {
+    if (!audioUrl || isDownloading) return;
+
+    // The audio URL is a cross-origin Supabase signed URL; browsers ignore
+    // the <a download> attribute for cross-origin hrefs and just navigate
+    // to it instead. Fetching the audio and downloading from a same-origin
+    // blob: URL makes the download attribute (and our chosen filename)
+    // actually take effect.
+    setIsDownloading(true);
+    try {
+      const response = await fetch(audioUrl);
+      if (!response.ok) throw new Error('Failed to fetch audio');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
       const link = document.createElement('a');
-      link.href = audioUrl;
+      link.href = blobUrl;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Failed to download audio. Please try again.');
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -527,15 +547,22 @@ export default function App() {
                 {/* Download Button */}
                 <button
                   onClick={handleDownload}
-                  disabled={audioError}
+                  disabled={audioError || isDownloading}
                   className="w-full h-12 bg-[#155dfc] hover:bg-[#1350e0] rounded-lg text-white text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 20 20">
-                    <path d="M10 12.5V2.5" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={svgPaths.p3053b100} stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={svgPaths.p37dcb700} stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Download
+                  {isDownloading ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
+                      <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 20 20">
+                      <path d="M10 12.5V2.5" stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d={svgPaths.p3053b100} stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d={svgPaths.p37dcb700} stroke="white" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  {isDownloading ? 'Preparing download...' : 'Download'}
                 </button>
 
                 {/* Hidden audio element */}

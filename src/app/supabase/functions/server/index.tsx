@@ -182,7 +182,7 @@ app.get("/make-server-d7dc0ecc/health", (c) => {
 
 // --- RATE LIMITING ---
 
-const RATE_LIMIT_PER_DAY = 20;
+const RATE_LIMIT_PER_DAY = 50;
 
 const checkRateLimit = async (ip: string): Promise<boolean> => {
   const today = new Date().toISOString().slice(0, 10);

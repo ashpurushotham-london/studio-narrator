@@ -198,9 +198,24 @@ const checkRateLimit = async (ip: string): Promise<boolean> => {
 // --- VALIDATION ---
 
 const MAX_CHARS = 20000;
-const ALLOWED_ACCENTS = ["US", "UK"];
-const ALLOWED_VOICES = ["male", "female"];
 const ALLOWED_NARRATION_STYLES = ["one-speaker", "two-speaker"];
+
+const ACCENT_LANGUAGE_CODES: Record<string, string> = {
+  US: "en-US",
+  UK: "en-GB",
+  IN: "en-IN",
+};
+
+// Chirp 3 HD voice personas exposed per accent. Each name must be a real
+// Chirp3-HD voice for the corresponding language code (verified directly
+// against the Google Cloud TTS API) - this list is also a security
+// boundary, since it's the only thing stopping a client from requesting
+// an arbitrary/invalid voice name.
+const ALLOWED_VOICES_BY_ACCENT: Record<string, string[]> = {
+  US: ["Leda", "Aoede", "Orus", "Puck"],
+  UK: ["Kore", "Zephyr", "Charon", "Fenrir"],
+  IN: ["Autonoe", "Callirrhoe", "Algieba", "Iapetus"],
+};
 
 // --- CORE TTS ENDPOINT ---
 
@@ -217,23 +232,30 @@ app.post("/make-server-d7dc0ecc/generate-speech", async (c) => {
     }
 
     const body = await c.req.json();
-    const { text: rawText, accent, voice, narrationStyle = "one-speaker" } = body;
+    const { text: rawText, accent, voiceName, narrationStyle = "one-speaker" } = body;
 
     const text = typeof rawText === "string" ? rawText.trim() : "";
 
-    if (!text || !accent || !voice) {
+    if (!text || !accent || !voiceName) {
       return c.json(
-        { error: "Missing required fields: text, accent (US/UK), voice (female/male)" },
+        { error: "Missing required fields: text, accent (US/UK/IN), voiceName" },
         { status: 400 }
       );
     }
 
-    if (!ALLOWED_ACCENTS.includes(accent)) {
-      return c.json({ error: `accent must be one of: ${ALLOWED_ACCENTS.join(", ")}` }, { status: 400 });
+    const allowedVoicesForAccent = ALLOWED_VOICES_BY_ACCENT[accent];
+    if (!allowedVoicesForAccent) {
+      return c.json(
+        { error: `accent must be one of: ${Object.keys(ALLOWED_VOICES_BY_ACCENT).join(", ")}` },
+        { status: 400 }
+      );
     }
 
-    if (!ALLOWED_VOICES.includes(voice)) {
-      return c.json({ error: `voice must be one of: ${ALLOWED_VOICES.join(", ")}` }, { status: 400 });
+    if (narrationStyle === "one-speaker" && !allowedVoicesForAccent.includes(voiceName)) {
+      return c.json(
+        { error: `voiceName for accent ${accent} must be one of: ${allowedVoicesForAccent.join(", ")}` },
+        { status: 400 }
+      );
     }
 
     if (!ALLOWED_NARRATION_STYLES.includes(narrationStyle)) {
@@ -256,18 +278,12 @@ app.post("/make-server-d7dc0ecc/generate-speech", async (c) => {
       );
     }
 
-    console.log(`Generating speech for ${wordCount} words with accent: ${accent}, voice: ${voice}, narration style: ${narrationStyle}`);
+    console.log(`Generating speech for ${wordCount} words with accent: ${accent}, voiceName: ${voiceName}, narration style: ${narrationStyle}`);
 
     // Get OAuth 2.0 access token
     const accessToken = await getAccessToken();
 
-    // Determine base language code
-    let languageCode: string;
-    if (accent === "UK") {
-      languageCode = "en-GB";
-    } else {
-      languageCode = "en-US";
-    }
+    const languageCode = ACCENT_LANGUAGE_CODES[accent];
 
     // Build request based on narration style
     let requestBody: any;
@@ -283,12 +299,15 @@ app.post("/make-server-d7dc0ecc/generate-speech", async (c) => {
         speaker: index % 2 === 0 ? "R" : "S", // R and S are the internal speaker tags
       }));
 
-      // FIX: MultiSpeaker voice mapping based on language code
-      let multiSpeakerVoice: string;
-      if (accent === "UK") {
-        multiSpeakerVoice = "en-GB-Studio-MultiSpeaker";
-      } else {
-        multiSpeakerVoice = "en-US-Studio-MultiSpeaker";
+      // MultiSpeaker voice mapping based on language code. Only US/UK have a
+      // Studio MultiSpeaker voice; India isn't supported for two-speaker mode.
+      const multiSpeakerVoiceByAccent: Record<string, string> = {
+        US: "en-US-Studio-MultiSpeaker",
+        UK: "en-GB-Studio-MultiSpeaker",
+      };
+      const multiSpeakerVoice = multiSpeakerVoiceByAccent[accent];
+      if (!multiSpeakerVoice) {
+        throw new HttpError(400, `Two-speaker mode isn't available for accent ${accent}`);
       }
 
       requestBody = {
@@ -312,18 +331,9 @@ app.post("/make-server-d7dc0ecc/generate-speech", async (c) => {
       console.log(`Calling Google Cloud TTS API with two-speaker mode: ${multiSpeakerVoice}`);
 
     } else {
-      // One-speaker mode: Use simple text input with specific voice name
-      // 💡 FIX: Use the stable Chirp 3 HD voice names found in the documentation!
-      
-      let voiceName: string;
-
-      if (accent === "UK") {
-        // Female: Kore, Male: Charon (These are now the stable Chirp 3 HD names for GB)
-        voiceName = voice === "female" ? "en-GB-Chirp3-HD-Kore" : "en-GB-Chirp3-HD-Charon";
-      } else {
-        // Female: Leda, Male: Orus (These are now the stable Chirp 3 HD names for US)
-        voiceName = voice === "female" ? "en-US-Chirp3-HD-Leda" : "en-US-Chirp3-HD-Orus";
-      }
+      // One-speaker mode: voiceName was already validated against
+      // ALLOWED_VOICES_BY_ACCENT[accent] above.
+      const fullVoiceName = `${languageCode}-Chirp3-HD-${voiceName}`;
 
       requestBody = {
         input: {
@@ -331,7 +341,7 @@ app.post("/make-server-d7dc0ecc/generate-speech", async (c) => {
         },
         voice: {
           languageCode: languageCode,
-          name: voiceName, // Specific named Chirp 3 HD voice
+          name: fullVoiceName,
         },
         audioConfig: {
           audioEncoding: "MP3",
@@ -341,7 +351,7 @@ app.post("/make-server-d7dc0ecc/generate-speech", async (c) => {
         },
       };
 
-      console.log(`Calling Google Cloud TTS API with specific voice: ${voiceName}`);
+      console.log(`Calling Google Cloud TTS API with specific voice: ${fullVoiceName}`);
     }
 
     // Call Google Cloud TTS REST API with OAuth 2.0 Bearer token

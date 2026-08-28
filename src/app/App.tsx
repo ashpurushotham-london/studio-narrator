@@ -9,15 +9,26 @@ const MAX_WORDS = 2500;
 const MAX_CHARS = 20000;
 const REQUEST_TIMEOUT_MS = 30000;
 
-// Voice configuration matching Figma design
+// Voice configuration. `voiceName` is the Chirp 3 HD persona sent to the
+// backend; it's validated there against an allowlist per accent.
 const VOICES = {
   UK: [
-    { id: 'mia-louise', name: 'Mia-Louise', gender: 'female', avatar: '👩', color: 'bg-[#f6339a]', default: true },
-    { id: 'steve', name: 'Steve', gender: 'male', avatar: '👨', color: 'bg-[#155dfc]', default: false },
+    { id: 'mia-louise', name: 'Mia-Louise', gender: 'female', voiceName: 'Kore', avatar: '👩', color: 'bg-[#f6339a]', default: true },
+    { id: 'freya', name: 'Freya', gender: 'female', voiceName: 'Zephyr', avatar: '👩', color: 'bg-[#f6339a]', default: false },
+    { id: 'steve', name: 'Steve', gender: 'male', voiceName: 'Charon', avatar: '👨', color: 'bg-[#155dfc]', default: false },
+    { id: 'oliver', name: 'Oliver', gender: 'male', voiceName: 'Fenrir', avatar: '👨', color: 'bg-[#155dfc]', default: false },
   ],
   US: [
-    { id: 'phil', name: 'Phil', gender: 'male', avatar: '👨', color: 'bg-[#155dfc]', default: true },
-    { id: 'nicole', name: 'Nicole', gender: 'female', avatar: '👩', color: 'bg-[#f6339a]', default: false },
+    { id: 'phil', name: 'Phil', gender: 'male', voiceName: 'Orus', avatar: '👨', color: 'bg-[#155dfc]', default: true },
+    { id: 'jake', name: 'Jake', gender: 'male', voiceName: 'Puck', avatar: '👨', color: 'bg-[#155dfc]', default: false },
+    { id: 'nicole', name: 'Nicole', gender: 'female', voiceName: 'Leda', avatar: '👩', color: 'bg-[#f6339a]', default: false },
+    { id: 'zara', name: 'Zara', gender: 'female', voiceName: 'Aoede', avatar: '👩', color: 'bg-[#f6339a]', default: false },
+  ],
+  IN: [
+    { id: 'priya', name: 'Priya', gender: 'female', voiceName: 'Autonoe', avatar: '👩', color: 'bg-[#f6339a]', default: true },
+    { id: 'ananya', name: 'Ananya', gender: 'female', voiceName: 'Callirrhoe', avatar: '👩', color: 'bg-[#f6339a]', default: false },
+    { id: 'arjun', name: 'Arjun', gender: 'male', voiceName: 'Algieba', avatar: '👨', color: 'bg-[#155dfc]', default: false },
+    { id: 'rohan', name: 'Rohan', gender: 'male', voiceName: 'Iapetus', avatar: '👨', color: 'bg-[#155dfc]', default: false },
   ],
 };
 
@@ -116,7 +127,7 @@ export default function App() {
           body: JSON.stringify({
             text: trimmedText,
             accent,
-            voice: currentVoice?.gender || 'female',
+            voiceName: currentVoice?.voiceName,
             narrationStyle: 'one-speaker',
           }),
           signal: controller.signal,
@@ -333,6 +344,25 @@ export default function App() {
                         </div>
                         <span className="flex-1 text-left text-white">US English</span>
                         {accent === 'US' && (
+                          <svg className="w-5 h-5" fill="#00D3F2" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d={svgPaths.pb067080} clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setAccent('IN')}
+                        disabled={isGenerating}
+                        className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                          accent === 'IN'
+                            ? 'bg-[rgba(0,184,219,0.2)] border-[#00b8db] shadow-lg'
+                            : 'bg-[rgba(15,23,43,0.4)] border-[#45556c] hover:border-[#5a6a82]'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-[#ff9933] flex items-center justify-center text-2xl">
+                          🇮🇳
+                        </div>
+                        <span className="flex-1 text-left text-white">Indian English</span>
+                        {accent === 'IN' && (
                           <svg className="w-5 h-5" fill="#00D3F2" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d={svgPaths.pb067080} clipRule="evenodd" />
                           </svg>

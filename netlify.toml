@@ -4,6 +4,11 @@
   publish = "dist"
 
 [[redirects]]
+  from = "/splurt"
+  to = "/splurt/"
+  status = 301
+
+[[redirects]]
   from = "/splurt/*"
   to = "/splurt/index.html"
   status = 200

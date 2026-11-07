@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "build:splurt": "cd splurt && npm ci && npx tsc --noEmit && npx vite build --base=/splurt/ && mkdir -p ../dist/splurt && cp -r dist/. ../dist/splurt/"
   },
   "dependencies": {
     "react": "18.3.1",

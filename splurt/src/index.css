@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+@import '@fontsource/patrick-hand/400.css';
+@import '@fontsource-variable/fredoka';
+
+@theme {
+  --color-splurt: #f000a0;
+  --color-splurt-dark: #c90080;
+  --color-ink: #050505;
+  --color-correct: #19d98b;
+  --color-wrong: #ff4d5e;
+  --font-hand: 'Patrick Hand', 'Comic Neue', 'Comic Sans MS', cursive;
+  --font-display: 'Fredoka Variable', 'Fredoka', 'Patrick Hand', system-ui, sans-serif;
+  --animate-wiggle: wiggle 2.4s ease-in-out infinite;
+  --animate-timer-warn: timer-warn 0.5s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+@keyframes timer-warn {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+html, body, #root { height: 100%; margin: 0; }
+html { background: var(--color-splurt); }
+body {
+  font-family: var(--font-display);
+  color: #fff;
+  background: var(--color-splurt);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  user-select: none;
+}
+input { user-select: text; }
+
+/* Playful pink backdrop: polka dots + soft vignette */
+.splurt-bg {
+  background-color: var(--color-splurt);
+  background-image:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.22) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.16) 0 2px, transparent 3px),
+    radial-gradient(ellipse at 50% 120%, rgba(201, 0, 128, 0.85), transparent 60%);
+  background-size: 46px 46px, 70px 70px, 100% 100%;
+}
+
+.pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+.pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+
+/* Chunky "pressable" buttons */
+.btn-chunky {
+  box-shadow: 0 6px 0 0 var(--btn-shadow, var(--color-splurt-dark));
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+.btn-chunky:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 var(--btn-shadow, var(--color-splurt-dark));
+}
+.btn-chunky:disabled { opacity: 0.5; }
+.btn-chunky:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Cards: size container so text scales with the card itself */
+.card-shell { container-type: size; }
+.card-text {
+  font-family: var(--font-hand);
+  line-height: 1.08;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.sticker {
+  background: #fff;
+  color: var(--color-ink);
+  border-radius: 1.5rem;
+  box-shadow: 0 6px 0 0 var(--color-splurt-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

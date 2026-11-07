@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import { Screen } from '../components/Screen';
-import { dateKey } from '../logic/engine';
-import { dailyStreak } from '../logic/stats';
 import { useApp } from '../state/AppContext';
 
 function Tile({ label, value, small }: { label: string; value: ReactNode; small?: boolean }) {
@@ -26,9 +24,6 @@ function Section({ title, children, i }: { title: string; children: ReactNode; i
 export function StatsScreen() {
   const { state } = useApp();
   const { stats } = state;
-  const today = dateKey();
-  const daily = Object.values(stats.daily.results);
-  const dailyToday = stats.daily.results[today];
   const classic = stats.byMode.classic;
   const classicAcc = classic.correct + classic.wrong ? Math.round((classic.correct / (classic.correct + classic.wrong)) * 100) : null;
 
@@ -53,26 +48,6 @@ export function StatsScreen() {
         <Tile label="Games started" value={classic.games} />
       </Section>
 
-      <Section title="⚡ Speed" i={2}>
-        <Tile label="Personal best" value={stats.speed.best} />
-        <Tile label="Rounds played" value={stats.byMode.speed.games} />
-      </Section>
-
-      <Section title="❤️ Survival" i={3}>
-        <Tile label="Best score" value={stats.survival.bestScore} />
-        <Tile label="Best streak" value={stats.survival.bestStreak} />
-        <Tile label="Games played" value={stats.byMode.survival.games} />
-      </Section>
-
-      <Section title="👯 Team" i={4}>
-        <Tile label="Team games" value={stats.byMode.team.games} />
-      </Section>
-
-      <Section title="📅 Daily challenge" i={5}>
-        <Tile label="Today" value={dailyToday ? `${dailyToday.correct}/${dailyToday.total}` : 'Not yet'} small={!dailyToday} />
-        <Tile label="Days completed" value={daily.length} />
-        <Tile label="Day streak 🔥" value={dailyStreak(stats, today)} />
-      </Section>
     </Screen>
   );
 }

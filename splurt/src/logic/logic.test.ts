@@ -88,9 +88,9 @@ describe('challenge engine', () => {
     expect(generateDeck(50, 'a')).toEqual(generateDeck(50, 'a'));
     expect(generateDeck(50, 'a')).not.toEqual(generateDeck(50, 'b'));
   });
-  it('builds a 413-card deck of resolvable, answerable challenges', () => {
+  it('builds a 250-card deck of resolvable, answerable challenges', () => {
     const deck = generateDeck(CLASSIC_CARD_COUNT, 'splurt-classic-0');
-    expect(deck).toHaveLength(413);
+    expect(deck).toHaveLength(250);
     for (const c of deck) {
       const r = resolve(c)!;
       expect(r).not.toBeNull();
@@ -99,8 +99,9 @@ describe('challenge engine', () => {
   });
   it('never repeats a question until the pool is exhausted, nor a pair at all', () => {
     const deck = generateDeck(CLASSIC_CARD_COUNT, 'repeat-test');
-    const first = deck.slice(0, QUESTIONS.length).map((c) => c.qid);
-    expect(new Set(first).size).toBe(QUESTIONS.length);
+    expect(new Set(deck.map((c) => c.qid)).size).toBe(Math.min(deck.length, QUESTIONS.length));
+    const long = generateDeck(QUESTIONS.length + 40, 'repeat-test');
+    expect(new Set(long.slice(0, QUESTIONS.length).map((c) => c.qid)).size).toBe(QUESTIONS.length);
     expect(new Set(deck.map((c) => c.qid + c.rid)).size).toBe(deck.length);
     for (let i = 1; i < deck.length; i++) expect(deck[i].qid).not.toBe(deck[i - 1].qid);
   });
@@ -113,7 +114,7 @@ describe('challenge engine', () => {
         if (window.includes(c.rid)) violations++;
       });
       expect(violations).toBeLessThan(deck.length * 0.02);
-      expect(new Set(deck.map((c) => c.rid)).size).toBeGreaterThan(80);
+      expect(new Set(deck.map((c) => c.rid)).size).toBeGreaterThan(60);
     }
   });
   it('gives every question several possible restrictions (hundreds of combinations)', () => {
@@ -148,11 +149,11 @@ const play = (s: Session, kinds: AnswerKind[]) => kinds.reduce(answerSession, s)
 describe('game modes', () => {
   it('classic: tracks counts and progress, finishes at the end of the deck', () => {
     let s = createSession({ mode: 'classic', settings });
-    expect(s.deck).toHaveLength(413);
+    expect(s.deck).toHaveLength(250);
     s = play(s, ['correct', 'wrong', 'skip', 'correct']);
     expect(s).toMatchObject({ index: 4, correct: 2, wrong: 1, skipped: 1, score: 2, status: 'playing' });
     s = play(s, Array(409).fill('correct'));
-    expect(s).toMatchObject({ status: 'finished', endReason: 'deck', index: 413 });
+    expect(s).toMatchObject({ status: 'finished', endReason: 'deck', index: 250 });
   });
   it('speed: clock counts down, ends on time, wrong answers cost nothing by default', () => {
     let s = createSession({ mode: 'speed', settings });

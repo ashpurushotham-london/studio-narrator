@@ -135,10 +135,7 @@ export function ResultsScreen() {
               Play {MODES[s.mode].name} again
             </Button>
           )}
-          <Button variant="dark" size="lg" onClick={() => leaveResults('modes')}>
-            Other modes
-          </Button>
-          <Button variant="ghost" onClick={() => leaveResults('menu')}>
+          <Button variant="dark" size="lg" onClick={() => leaveResults('menu')}>
             Main menu
           </Button>
         </div>

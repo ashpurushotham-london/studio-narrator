@@ -1,7 +1,7 @@
 import { Check, SkipForward, X } from 'lucide-react';
 import { BlackCard, PinkCard } from '../components/Cards';
 import { Screen } from '../components/Screen';
-import { MODE_ORDER, MODES } from '../logic/modes';
+import { ENABLED_MODES, MODES } from '../logic/modes';
 
 const steps = [
   'Read the pink card: it asks for something.',
@@ -37,9 +37,9 @@ export function HowToScreen() {
         <li className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-2xl border-[3px] border-white bg-correct text-ink"><Check strokeWidth={4} /></span> Correct: found a word. Key: C or →</li>
       </ul>
 
-      <h2 className="mb-2 font-display text-2xl font-bold">Game modes</h2>
+      <h2 className="mb-2 font-display text-2xl font-bold">Game mode</h2>
       <ul className="mb-6 flex flex-col gap-2 pb-4">
-        {MODE_ORDER.map((id) => (
+        {ENABLED_MODES.map((id) => (
           <li key={id} className="flex gap-3 rounded-2xl border-[3px] border-white/60 bg-black/15 px-4 py-2">
             <span className="text-3xl">{MODES[id].emoji}</span>
             <span>

@@ -6,7 +6,7 @@ interface TopBarProps {
   onExit: () => void;
   /** e.g. "12" */
   current: number;
-  /** e.g. 413; omit for open-ended decks */
+  /** e.g. 250; omit for open-ended decks */
   total?: number;
   /** 0..1 */
   progress: number;

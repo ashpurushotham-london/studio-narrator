@@ -145,7 +145,7 @@ export function dateKey(date: Date = new Date()): string {
 }
 
 export const DAILY_CARD_COUNT = 12;
-export const CLASSIC_CARD_COUNT = 413;
+export const CLASSIC_CARD_COUNT = 250;
 
 /** The same date always yields the same daily set. */
 export function dailyDeck(key: string = dateKey()): Challenge[] {

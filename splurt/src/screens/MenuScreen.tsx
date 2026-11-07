@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { BarChart3, CircleHelp, Play, Settings, Volume2, VolumeX } from 'lucide-react';
 import { playSfx } from '../audio/sfx';
+import { useState } from 'react';
 import { Button } from '../components/Button';
+import { Modal } from '../components/Modal';
 import { Logo } from '../components/Logo';
-import { MODES } from '../logic/modes';
 import { useApp } from '../state/AppContext';
 
 const BLOBS = [
@@ -14,7 +15,8 @@ const BLOBS = [
 ];
 
 export function MenuScreen() {
-  const { state, go, resume, updateSettings } = useApp();
+  const { state, go, start, resume, updateSettings } = useApp();
+  const [confirmNew, setConfirmNew] = useState(false);
   const { session, settings } = state;
   const saved = session && session.status === 'playing' ? session : null;
 
@@ -64,14 +66,14 @@ export function MenuScreen() {
       <div className="z-10 flex w-full max-w-sm flex-col items-stretch gap-4">
         {saved && (
           <Button variant="green" size="lg" icon={<Play fill="currentColor" size={22} />} onClick={resume}>
-            Resume {MODES[saved.mode].name}
+            Resume
             <span className="rounded-full bg-ink/15 px-2 py-0.5 text-lg">
-              {saved.mode === 'speed' ? `${saved.timeLeft}s` : `${Math.min(saved.index + 1, saved.deck.length)}/${saved.deck.length}`}
+              {Math.min(saved.index + 1, saved.deck.length)}/{saved.deck.length}
             </span>
           </Button>
         )}
         <motion.div animate={saved ? {} : { scale: [1, 1.04, 1] }} transition={{ duration: 1.6, repeat: Infinity }}>
-          <Button size="xl" className="w-full" onClick={() => go('modes')} icon={<Play fill="currentColor" size={34} />}>
+          <Button size="xl" className="w-full" onClick={() => (saved ? setConfirmNew(true) : start('classic'))} icon={<Play fill="currentColor" size={34} />}>
             PLAY
           </Button>
         </motion.div>
@@ -88,6 +90,14 @@ export function MenuScreen() {
           ))}
         </div>
       </div>
+
+      <Modal open={confirmNew} title="Start a new game?" onClose={() => setConfirmNew(false)}>
+        <p className="mb-5 font-hand text-2xl text-white/85">You have an unfinished game. Starting a new one will replace it.</p>
+        <div className="flex flex-col gap-3">
+          <Button variant="white" onClick={() => { setConfirmNew(false); start('classic'); }}>Start new game</Button>
+          <Button variant="ghost" onClick={() => setConfirmNew(false)}>Cancel</Button>
+        </div>
+      </Modal>
     </motion.main>
   );
 }

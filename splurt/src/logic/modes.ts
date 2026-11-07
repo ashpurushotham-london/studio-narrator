@@ -37,7 +37,7 @@ export const MODES: Record<ModeId, ModeConfig> = {
   classic: {
     id: 'classic',
     name: 'Classic',
-    tagline: 'No timer. Work through all 413 cards at your own pace.',
+    tagline: 'No timer. Work through all 250 cards at your own pace.',
     emoji: '🃏',
     timed: false,
     lives: false,
@@ -122,3 +122,10 @@ export const MODES: Record<ModeId, ModeConfig> = {
 };
 
 export const MODE_ORDER: ModeId[] = ['classic', 'speed', 'survival', 'team', 'daily'];
+
+/**
+ * Modes currently offered in the UI. The starter release ships Classic only; the other modes'
+ * logic, tests and screens are kept for later phases. Add an id here (and restore the mode
+ * picker route) to switch one on.
+ */
+export const ENABLED_MODES: ModeId[] = ['classic'];

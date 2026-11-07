@@ -14,9 +14,11 @@ npm run build      # type-check + production build into dist/
 
 ## Modes
 
+**Starter release: only Classic is switched on** (`ENABLED_MODES` in `src/logic/modes.ts`). The other modes are fully implemented and tested in the logic layer and kept for later phases; their screens (`ModesScreen`, `TeamSetupScreen`) just aren't routed from the menu yet.
+
 | Mode | Rules |
 | --- | --- |
-| Classic | No timer. A fixed 413-card box; correct / wrong / skipped are tracked. |
+| Classic | No timer. A fixed 250-card box; correct / wrong / skipped are tracked. |
 | Speed | Countdown (30/60/90/120 s, default 60). Personal best saved. Timer warning at 10 s. |
 | Survival | Configurable lives (1-10). Wrong answer = -1 life. Streak bonus every 5. Best score and streak saved. |
 | Team | 2-4 named players take turns, independent scores, winner (or tie) at the end. |

@@ -1,6 +1,17 @@
 [build]
-  command = "npm run build"
+  # Builds the Studio Narrator app, then the SPLURT game, which is served at /splurt/
+  command = "npm run build && npm run build:splurt"
   publish = "dist"
+
+[[redirects]]
+  from = "/splurt"
+  to = "/splurt/"
+  status = 301
+
+[[redirects]]
+  from = "/splurt/*"
+  to = "/splurt/index.html"
+  status = 200
 
 [[redirects]]
   from = "/*"
